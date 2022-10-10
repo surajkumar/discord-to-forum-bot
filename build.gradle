@@ -1,0 +1,33 @@
+subprojects {
+    apply plugin: 'java'
+
+    group = 'dtfb'
+    version = '0.0.1'
+
+    tasks.withType(JavaCompile) {
+        options.release = 18
+    }
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(18))
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+}
