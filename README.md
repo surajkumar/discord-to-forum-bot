@@ -1,6 +1,6 @@
 # Discord to Forum Bot
 
-<img src="https://i.imgur.com/utLkeXR.png" width="150" height="auto">
+<img src="https://i.imgur.com/utLkeXR.png" width="300" height="auto">
 
 ## Introduction
 The Discord to Forum Bot (DTFB) is an application that translates Discord messages and displays them in a website in the style of a forum. This 1-2-1 mapping allows users to post in sections via the DTFB forum and thus those messages will be posted by the bot into the corrosponding Discord channel.
