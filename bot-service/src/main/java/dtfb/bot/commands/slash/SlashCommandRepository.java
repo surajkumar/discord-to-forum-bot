@@ -1,7 +1,6 @@
 package dtfb.bot.commands.slash;
 
 import dtfb.bot.commands.slash.impl.PingSlashCommand;
-import dtfb.bot.commands.slash.impl.ScrubSlashCommand;
 import dtfb.bot.commands.slash.impl.ServerURLSlashCommand;
 
 import java.util.HashMap;

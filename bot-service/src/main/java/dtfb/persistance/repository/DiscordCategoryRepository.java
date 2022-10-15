@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface DiscordCategoryRepository extends JpaRepository<DiscordCategory, Long> {
 
-    List<DiscordCategory> findByServerId(String serverId);
+    List<DiscordCategory> findByServerId(long serverId);
 
 }

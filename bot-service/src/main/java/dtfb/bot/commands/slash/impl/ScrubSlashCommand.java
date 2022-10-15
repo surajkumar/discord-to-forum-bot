@@ -4,11 +4,10 @@ import dtfb.bot.commands.slash.SlashCommand;
 import dtfb.persistance.entity.*;
 import dtfb.persistance.repository.*;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Category;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +19,7 @@ import java.util.concurrent.Executors;
 
 @Service
 public class ScrubSlashCommand extends SlashCommand {
+    private static final Logger logger = LoggerFactory.getLogger(ScrubSlashCommand.class);
     private final Executor executor = Executors.newCachedThreadPool();
 
     @Autowired
@@ -41,25 +41,32 @@ public class ScrubSlashCommand extends SlashCommand {
 
     @Override
     public void handle(SlashCommandEvent event) {
+        logger.info("Received /scrub");
 
         event.deferReply().queue();
 
         executor.execute(() -> {
             /* Loop over all the categories within a server */
             List<Category> categories = event.getGuild().getCategories();
+
+            logger.debug("Server has {} categories", categories.size());
+
             categories.forEach(category -> {
 
                 /* Save the category information */
                 DiscordCategory discordCategory = new DiscordCategory();
-                discordCategory.setServerId(event.getGuild().getId());
-                discordCategory.setCategoryId(category.getId());
+                discordCategory.setServerId(event.getGuild().getIdLong());
+                discordCategory.setCategoryId(category.getIdLong());
                 discordCategory.setName(category.getName());
                 discordCategoryRepository.save(discordCategory);
+                logger.trace("Saved category with name {}", discordCategory.getName());
 
 
                 /* Loop over all text channels in category */
                 List<TextChannel> channels = category.getTextChannels();
                 List<DiscordChannel> discordChannels = new ArrayList<>();
+                logger.debug("Category has {} channels", channels.size());
+
                 channels.forEach(channel -> {
 
                     /* Loop over threads in channel */
@@ -69,38 +76,42 @@ public class ScrubSlashCommand extends SlashCommand {
                         /* User sending message in thread */
                         User user = threadChannel.getOwner().getUser();
                         DiscordUser discordUser = new DiscordUser();
-                        discordUser.setUserId(discordUser.getUserId());
+                        discordUser.setUserId(user.getIdLong());
                         discordUser.setName(user.getName());
                         discordUser.setDiscriminator(user.getDiscriminator());
+                        discordUser.setProfilePictureUrl(user.getEffectiveAvatarUrl());
                         discordUserRepository.save(discordUser);
 
                         /* Thread in channel */
                         DiscordChannelThread discordChannelThread = new DiscordChannelThread();
-                        discordChannelThread.setThreadId(threadChannel.getId());
+                        discordChannelThread.setThreadId(threadChannel.getIdLong());
                         discordChannelThread.setName(threadChannel.getName());
-                        discordChannelThread.setChannelId(channel.getId());
+                        discordChannelThread.setChannelId(channel.getIdLong());
                         threads.add(discordChannelThread);
 
                         /* Messages in thread */
                         List<DiscordMessage> threadMessages = new ArrayList<>();
-                        threadChannel.getHistory().getRetrievedHistory().forEach(message -> {
-                            threadMessages.add(toDiscordMessage(threadChannel.getId(), message));
+                        MessageHistory.getHistoryFromBeginning(threadChannel).complete().getRetrievedHistory().forEach(message -> {
+                            threadMessages.add(toDiscordMessage(threadChannel.getIdLong(), message));
                         });
+                        logger.debug("Thread {} has {} messages", threadChannel.getName(), threadMessages.size());
                         discordMessageRepository.saveAll(threadMessages);
-
                     });
+                    logger.debug("Channel has {} thread channels", threads.size());
                     discordChannelThreadRepository.saveAll(threads);
 
                     /* The discord text channel */
                     DiscordChannel discordChannel = new DiscordChannel();
-                    discordChannel.setCategoryId(category.getId());
-                    discordChannel.setChannelId(channel.getId());
+                    discordChannel.setCategoryId(category.getIdLong());
+                    discordChannel.setChannelId(channel.getIdLong());
                     discordChannel.setName(channel.getName());
                     discordChannels.add(discordChannel);
+                    logger.trace("Discord channel has been saved");
 
                     /* The regular messages in a text channel */
                     List<DiscordMessage> channelMessages = new ArrayList<>();
-                    channel.getHistory().getRetrievedHistory().forEach(message -> channelMessages.add(toDiscordMessage(channel.getId(), message)));
+                    MessageHistory.getHistoryFromBeginning(channel).complete().getRetrievedHistory().forEach(message -> channelMessages.add(toDiscordMessage(channel.getIdLong(), message)));
+                    logger.debug("Channel has {} messages", channelMessages.size());
                     discordMessageRepository.saveAll(channelMessages);
 
                 });
@@ -109,7 +120,7 @@ public class ScrubSlashCommand extends SlashCommand {
 
             EmbedBuilder eb = new EmbedBuilder();
             eb.setAuthor("Ready", "https://google.com/", null);
-            eb.setDescription("Your server has been setup and your newly created forum can be accessed by visiting http://localhost:8080/forum/" + event.getGuild().getId());
+            eb.setDescription("Your server has been setup and your newly created forum can be accessed by visiting http://localhost:8080/forum/" + event.getGuild().getIdLong());
             eb.setColor(Color.RED);
             event.getHook().editOriginalEmbeds().setEmbeds(eb.build()).queue();
         });
@@ -122,10 +133,11 @@ public class ScrubSlashCommand extends SlashCommand {
      * @param message The message that will be converted.
      * @return A constructed DiscordMessage object representation of Message
      */
-    private DiscordMessage toDiscordMessage(String channelId, Message message) {
+    private DiscordMessage toDiscordMessage(long channelId, Message message) {
         DiscordMessage discordMessage = new DiscordMessage();
+        discordMessage.setMessageId(message.getIdLong());
         discordMessage.setChannelId(channelId);
-        discordMessage.setUserId(message.getAuthor().getId());
+        discordMessage.setUserId(message.getAuthor().getIdLong());
         discordMessage.setMessage(message.getContentRaw());
         discordMessage.setTimestamp(message.getTimeCreated().toString());
         return discordMessage;

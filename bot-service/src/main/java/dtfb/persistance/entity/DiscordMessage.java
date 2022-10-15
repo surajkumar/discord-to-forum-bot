@@ -9,20 +9,20 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 public class DiscordMessage {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
-    private long id;
+    @Column(nullable = false)
+    private long messageId;
 
-    @Column
-    private String channelId;
+    @Column(nullable = false)
+    private long channelId;
 
-    @Column
+    @Column(nullable = false)
     private String message;
 
-    @Column
+    @Column(nullable = false)
     private String timestamp;
 
-    @Column
-    private String userId;
+    @Column(nullable = false)
+    private long userId;
 }

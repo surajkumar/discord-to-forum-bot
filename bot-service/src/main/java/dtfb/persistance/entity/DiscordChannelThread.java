@@ -10,17 +10,14 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 public class DiscordChannelThread {
+
+    @Column(nullable = false)
+    private long channelId;
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
-    private long id;
+    @Column(nullable = false)
+    private long threadId;
 
-    @Column
-    private String channelId;
-
-    @Column
-    private String threadId;
-
-    @Column
+    @Column(nullable = false)
     private String name;
 }

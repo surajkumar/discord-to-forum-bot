@@ -38,13 +38,14 @@ public class JdaBotStrategy implements BotStrategy {
             connected = jda.getStatus() == JDA.Status.CONNECTED;
             if(connected) {
                 SlashCommandRepository.getCommands().forEach((k, v) -> {
-                    for(SlashCommandOption option : v.getOptions()) {
+                    jda.upsertCommand(new CommandData(k, v.getDescription())).queue();
+                    /*for(SlashCommandOption option : v.getOptions()) {
                         jda.upsertCommand(new CommandData(k, v.getDescription())
                            .addOption(OptionType.valueOf(option.type().name()),
                                       option.name(),
                                      option.description()))
                            .queue();
-                    }
+                    }*/
                 });
             }
         } catch (Exception e) {

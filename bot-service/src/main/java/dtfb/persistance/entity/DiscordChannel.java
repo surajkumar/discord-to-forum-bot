@@ -12,16 +12,12 @@ import javax.persistence.*;
 @Entity
 public class DiscordChannel {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
-    private long id;
+    @Column(nullable = false)
+    private long channelId;
 
-    @Column
-    private String categoryId;
+    @Column(nullable = false)
+    private long categoryId;
 
-    @Column
-    private String channelId;
-
-    @Column
+    @Column(nullable = false)
     private String name;
 }

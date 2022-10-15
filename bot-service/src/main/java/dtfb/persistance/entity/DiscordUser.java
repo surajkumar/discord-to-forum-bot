@@ -9,17 +9,17 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 public class DiscordUser {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
-    private long id;
+    @Column(nullable = false)
+    private long userId;
 
-    @Column
-    private String userId;
-
-    @Column
+    @Column(nullable = false)
     private String name;
 
-    @Column
+    @Column(nullable = false)
     private String discriminator;
+
+    @Column
+    private String profilePictureUrl;
 }

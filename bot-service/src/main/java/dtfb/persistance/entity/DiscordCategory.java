@@ -10,15 +10,11 @@ import javax.persistence.*;
 @Entity
 public class DiscordCategory {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
-    private long id;
+    @Column
+    private long categoryId;
 
     @Column
-    private String serverId;
-
-    @Column
-    private String categoryId;
+    private long serverId;
 
     @Column
     private String name;

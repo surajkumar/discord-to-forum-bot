@@ -31,7 +31,7 @@ public class BotMain {
     @Bean
     InitializingBean startBot() {
         return () -> {
-            SlashCommandRepository.put("googleit", scrubSlashCommand);
+            SlashCommandRepository.put("scrub", scrubSlashCommand);
             BotStrategy strategy = new JdaBotStrategy(new String(Base64.getDecoder().decode(BASE_64_ENCODED_BOT_TOKEN))); //test
             strategy.setup();
         };
