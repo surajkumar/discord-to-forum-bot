@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: cloud-discovery-service
+server:
+  port: 8761
+eureka:
+  instance:
+    hostname: localhost
+    lease-expiration-duration-in-seconds: 30
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+  server:
+    renewal-percent-threshold: 30
+    enable-self-preservation: false

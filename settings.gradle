@@ -1,3 +1,6 @@
 rootProject.name = 'discord-to-forum-bot'
-include 'bot'
+include 'bot-service'
+include 'cloud-discovery-service'
+include 'cloud-gateway-service'
+include 'frontend'
 

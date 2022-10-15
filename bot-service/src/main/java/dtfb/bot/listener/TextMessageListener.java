@@ -23,6 +23,7 @@ public class TextMessageListener extends DiscordEventListener {
                     logger.info("Received command [" + cmd + "] from "
                             + event.getAuthor().getName() + "#" + event.getAuthor().getDiscriminator());
                     command.handle(event, input);
+                    return;
                 }
             }
 

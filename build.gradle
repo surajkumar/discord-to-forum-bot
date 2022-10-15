@@ -1,11 +1,8 @@
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'application'
 
     group = 'dtfb'
     version = '0.0.1'
-
-    mainClassName = 'dtfb.Main'
 
     tasks.withType(JavaCompile) {
         options.release = 18
@@ -20,8 +17,12 @@ subprojects {
         mavenCentral()
     }
 
+    ext {
+        set('springCloudVersion', "2021.0.4")
+    }
+
     dependencies {
-        testImplementation 'org.slf4j:slf4j-reload4j:2.0.3'
+        implementation platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
     }
 
     tasks.named('test') {
