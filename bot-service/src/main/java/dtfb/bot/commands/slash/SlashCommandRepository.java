@@ -12,7 +12,10 @@ public class SlashCommandRepository {
     static {
         COMMANDS.put("ping", new PingSlashCommand());
         COMMANDS.put("google", new ServerURLSlashCommand());
-        COMMANDS.put("googleit", new ScrubSlashCommand());
+    }
+
+    public static void put(String name, SlashCommand command) {
+        COMMANDS.put(name, command);
     }
 
     public static SlashCommand get(String input) {
