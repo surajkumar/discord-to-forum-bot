@@ -4,6 +4,14 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: bot
+          uri: lb://bot
+          predicates:
+            - Path=/api/**
+        - id: frontend
+          uri: lb://frontend
+          predicates:
+            - Path=/forum/**
 server:
   port: 8080
 eureka:

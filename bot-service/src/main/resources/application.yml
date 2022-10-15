@@ -13,7 +13,7 @@ spring:
     username: sa
     password: sa
 server:
-  port: 8080
+  port: 8082
 eureka:
   client:
     serviceUrl:

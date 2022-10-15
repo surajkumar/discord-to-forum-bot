@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${server.getServerName()}"></title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+    <section class="channels">
+        <div th:each="category: ${server.getCategories()}">
+
+            <h1><span th:text="${category.getCategoryName()}"/></h1>
+
+            <div th:each="channel: ${category.getChannels()}">
+                <span th:text="${channel.getChannelName()}"/><br>
+
+                <div th:each="thread: ${channel.getThreads()}">
+                    <span th:text="${thread.getThreadName()}"/><br>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+</body>
+</html>

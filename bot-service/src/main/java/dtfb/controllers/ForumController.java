@@ -1,5 +1,9 @@
 package dtfb.controllers;
 
+import dtfb.controllers.structure.CategoryStructure;
+import dtfb.controllers.structure.ChannelStructure;
+import dtfb.controllers.structure.ServerStructure;
+import dtfb.controllers.structure.ThreadStructure;
 import dtfb.persistance.entity.*;
 import dtfb.persistance.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +14,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/forum")
+@RequestMapping("/api/v1/forum")
 public class ForumController {
 
     @Autowired
@@ -30,6 +35,44 @@ public class ForumController {
 
     @Autowired
     private DiscordUserRepository discordUserRepository;
+
+    @GetMapping("/{serverId}")
+    public ResponseEntity<ServerStructure> getServer(@PathVariable long serverId) {
+        ServerStructure serverStructure = new ServerStructure();
+        List<CategoryStructure> categoryStructure = new ArrayList<>();
+        discordCategoryRepository.findByServerId(serverId).forEach(c -> {
+            CategoryStructure cats = new CategoryStructure();
+            cats.setCategoryId(c.getCategoryId());
+            cats.setCategoryName(c.getName());
+
+            List<ChannelStructure> channelStructure = new ArrayList<>();
+            discordChannelRepository.findByCategoryId(c.getCategoryId()).forEach(channel -> {
+                ChannelStructure cs = new ChannelStructure();
+                cs.setChannelId(channel.getChannelId());
+                cs.setChannelName(channel.getName());
+
+
+                List<ThreadStructure> threadStructures = new ArrayList<>();
+                discordChannelThreadRepository.findByChannelId(channel.getChannelId()).forEach(t -> {
+                    ThreadStructure ts = new ThreadStructure();
+                    ts.setThreadId(t.getThreadId());
+                    ts.setThreadName(t.getName());
+                    threadStructures.add(ts);
+                });
+                cs.setThreads(threadStructures);
+                channelStructure.add(cs);
+            });
+
+            cats.setChannels(channelStructure);
+            categoryStructure.add(cats);
+        });
+
+        serverStructure.setServerId(serverId);
+        serverStructure.setServerName("Discord Server");
+        serverStructure.setCategories(categoryStructure);
+
+        return new ResponseEntity<>(serverStructure, HttpStatus.OK);
+    }
 
     @GetMapping("/{serverId}/categories")
     public ResponseEntity<List<DiscordCategory>> getCategories(@PathVariable long serverId) {
