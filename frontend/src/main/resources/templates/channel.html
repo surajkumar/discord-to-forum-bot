@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${channel.getChannelName()}"></title>
+  <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+<section class="channels">
+  <div th:each="message: ${channel.getMessages()}">
+
+    <span th:text="${message.getMessage()}"/><br>
+    <span th:text="${message.getUserName()}"/><br>
+    <span th:text="${message.getTimestamp()}"/><br>
+
+    <hr>
+  </div>
+</section>
+
+
+</body>
+</html>

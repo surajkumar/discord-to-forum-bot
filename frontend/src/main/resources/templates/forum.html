@@ -10,13 +10,13 @@
     <section class="channels">
         <div th:each="category: ${server.getCategories()}">
 
-            <h1><span th:text="${category.getCategoryName()}"/></h1>
+            <h2><span th:text="${category.getCategoryName()}"/></h2>
 
             <div th:each="channel: ${category.getChannels()}">
-                <span th:text="${channel.getChannelName()}"/><br>
+                <a href="#"><span th:text="${channel.getChannelName()}"/></a><br>
 
                 <div th:each="thread: ${channel.getThreads()}">
-                    <span th:text="${thread.getThreadName()}"/><br>
+                    <a href="#"><span th:text="${thread.getThreadName()}"/></a><br>
                 </div>
 
             </div>

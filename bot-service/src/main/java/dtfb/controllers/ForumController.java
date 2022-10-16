@@ -4,6 +4,8 @@ import dtfb.controllers.structure.CategoryStructure;
 import dtfb.controllers.structure.ChannelStructure;
 import dtfb.controllers.structure.ServerStructure;
 import dtfb.controllers.structure.ThreadStructure;
+import dtfb.controllers.structure.cm.CmChannel;
+import dtfb.controllers.structure.cm.CmMessage;
 import dtfb.persistance.entity.*;
 import dtfb.persistance.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,8 +91,28 @@ public class ForumController {
     }
 
     @GetMapping("/channels/{channelId}/messages")
-    public ResponseEntity<List<DiscordMessage>> getChannelMessages(@PathVariable long channelId) {
-        return new ResponseEntity<>(messageRepository.findByChannelId(channelId), HttpStatus.OK);
+    public ResponseEntity<CmChannel> getChannelMessages(@PathVariable long channelId) {
+        DiscordChannel channel = channelRepository.findByChannelId(channelId);
+        List<CmMessage> cmMessages = new ArrayList<>();
+
+        messageRepository.findByChannelId(channelId).forEach(msg -> {
+            CmMessage cmMessage = new CmMessage();
+            cmMessage.setMessage(msg.getMessage());
+            cmMessage.setMessageId(msg.getMessageId());
+            cmMessage.setTimestamp(cmMessage.getTimestamp());
+            cmMessage.setUserId(msg.getUserId());
+            DiscordUser user = userRepository.findByUserId(msg.getUserId());
+            cmMessage.setUserImage(user.getProfilePictureUrl());
+            cmMessage.setUserName(user.getName() + "#" + user.getDiscriminator());
+            cmMessages.add(cmMessage);
+        });
+
+        CmChannel cmChannel = new CmChannel();
+        cmChannel.setChannelId(channelId);
+        cmChannel.setChannelName(channel.getName());
+        cmChannel.setMessages(cmMessages);
+
+        return new ResponseEntity<>(cmChannel, HttpStatus.OK);
     }
 
     @GetMapping("/channels/{channelId}/threads")

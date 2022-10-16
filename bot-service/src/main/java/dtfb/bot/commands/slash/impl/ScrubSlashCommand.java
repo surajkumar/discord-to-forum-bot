@@ -62,73 +62,78 @@ public class ScrubSlashCommand extends SlashCommand {
 
             categories.forEach(category -> {
 
-                /* Save the category information */
-                DiscordCategory discordCategory = new DiscordCategory();
-                discordCategory.setCategoryId(category.getIdLong());
-                discordCategory.setName(category.getName());
-                discordCategoryRepository.save(discordCategory);
-                logger.trace("Saved category with name {}", discordCategory.getName());
+                /* Only categories that have text channels to persist */
+                if(category.getTextChannels().size() > 0) {
+
+                    /* Save the category information */
+                    DiscordCategory discordCategory = new DiscordCategory();
+                    discordCategory.setCategoryId(category.getIdLong());
+                    discordCategory.setServerId(server.getServerId());
+                    discordCategory.setName(category.getName());
+                    discordCategoryRepository.save(discordCategory);
+                    logger.trace("Saved category with name {}", discordCategory.getName());
 
 
-                /* Loop over all text channels in category */
-                List<TextChannel> channels = category.getTextChannels();
-                List<DiscordChannel> discordChannels = new ArrayList<>();
-                logger.debug("Category has {} channels", channels.size());
+                    /* Loop over all text channels in category */
+                    List<TextChannel> channels = category.getTextChannels();
+                    List<DiscordChannel> discordChannels = new ArrayList<>();
+                    logger.debug("Category has {} channels", channels.size());
 
-                channels.forEach(channel -> {
+                    channels.forEach(channel -> {
 
-                    /* Loop over threads in channel */
-                    List<DiscordChannelThread> threads = new ArrayList<>();
-                    channel.getThreadChannels().forEach(threadChannel -> {
+                        /* Loop over threads in channel */
+                        List<DiscordChannelThread> threads = new ArrayList<>();
+                        channel.getThreadChannels().forEach(threadChannel -> {
 
-                        /* User sending message in thread */
-                        User user = threadChannel.getOwner().getUser();
-                        DiscordUser discordUser = new DiscordUser();
-                        discordUser.setUserId(user.getIdLong());
-                        discordUser.setName(user.getName());
-                        discordUser.setDiscriminator(user.getDiscriminator());
-                        discordUser.setProfilePictureUrl(user.getEffectiveAvatarUrl());
-                        discordUserRepository.save(discordUser);
+                            /* User sending message in thread */
+                            User user = threadChannel.getOwner().getUser();
+                            DiscordUser discordUser = new DiscordUser();
+                            discordUser.setUserId(user.getIdLong());
+                            discordUser.setName(user.getName());
+                            discordUser.setDiscriminator(user.getDiscriminator());
+                            discordUser.setProfilePictureUrl(user.getEffectiveAvatarUrl());
+                            discordUserRepository.save(discordUser);
 
-                        /* Thread in channel */
-                        DiscordChannelThread discordChannelThread = new DiscordChannelThread();
-                        discordChannelThread.setThreadId(threadChannel.getIdLong());
-                        discordChannelThread.setName(threadChannel.getName());
-                        discordChannelThread.setChannelId(channel.getIdLong());
-                        threads.add(discordChannelThread);
+                            /* Thread in channel */
+                            DiscordChannelThread discordChannelThread = new DiscordChannelThread();
+                            discordChannelThread.setThreadId(threadChannel.getIdLong());
+                            discordChannelThread.setName(threadChannel.getName());
+                            discordChannelThread.setChannelId(channel.getIdLong());
+                            threads.add(discordChannelThread);
 
-                        /* Messages in thread */
-                        List<DiscordMessage> threadMessages = new ArrayList<>();
-                        MessageHistory.getHistoryFromBeginning(threadChannel).complete().getRetrievedHistory().forEach(message -> {
-                            threadMessages.add(toDiscordMessage(threadChannel.getIdLong(), message));
+                            /* Messages in thread */
+                            List<DiscordMessage> threadMessages = new ArrayList<>();
+                            MessageHistory.getHistoryFromBeginning(threadChannel).complete().getRetrievedHistory().forEach(message -> {
+                                threadMessages.add(toDiscordMessage(threadChannel.getIdLong(), message));
+                            });
+                            logger.debug("Thread {} has {} messages", threadChannel.getName(), threadMessages.size());
+                            discordMessageRepository.saveAll(threadMessages);
                         });
-                        logger.debug("Thread {} has {} messages", threadChannel.getName(), threadMessages.size());
-                        discordMessageRepository.saveAll(threadMessages);
+                        logger.debug("Channel has {} thread channels", threads.size());
+                        discordChannelThreadRepository.saveAll(threads);
+
+                        /* The discord text channel */
+                        DiscordChannel discordChannel = new DiscordChannel();
+                        discordChannel.setCategoryId(category.getIdLong());
+                        discordChannel.setChannelId(channel.getIdLong());
+                        discordChannel.setName(channel.getName());
+                        discordChannels.add(discordChannel);
+                        logger.trace("Discord channel has been saved");
+
+                        /* The regular messages in a text channel */
+                        List<DiscordMessage> channelMessages = new ArrayList<>();
+                        MessageHistory.getHistoryFromBeginning(channel).complete().getRetrievedHistory().forEach(message -> channelMessages.add(toDiscordMessage(channel.getIdLong(), message)));
+                        logger.debug("Channel has {} messages", channelMessages.size());
+                        discordMessageRepository.saveAll(channelMessages);
+
                     });
-                    logger.debug("Channel has {} thread channels", threads.size());
-                    discordChannelThreadRepository.saveAll(threads);
-
-                    /* The discord text channel */
-                    DiscordChannel discordChannel = new DiscordChannel();
-                    discordChannel.setCategoryId(category.getIdLong());
-                    discordChannel.setChannelId(channel.getIdLong());
-                    discordChannel.setName(channel.getName());
-                    discordChannels.add(discordChannel);
-                    logger.trace("Discord channel has been saved");
-
-                    /* The regular messages in a text channel */
-                    List<DiscordMessage> channelMessages = new ArrayList<>();
-                    MessageHistory.getHistoryFromBeginning(channel).complete().getRetrievedHistory().forEach(message -> channelMessages.add(toDiscordMessage(channel.getIdLong(), message)));
-                    logger.debug("Channel has {} messages", channelMessages.size());
-                    discordMessageRepository.saveAll(channelMessages);
-
-                });
-                discordChannelRepository.saveAll(discordChannels);
+                    discordChannelRepository.saveAll(discordChannels);
+                }
             });
 
             EmbedBuilder eb = new EmbedBuilder();
             eb.setAuthor("Ready", "https://google.com/", null);
-            eb.setDescription("Your server has been setup and your newly created forum can be accessed by visiting http://localhost:8080/forum/" + event.getGuild().getIdLong());
+            eb.setDescription("Your server has been setup and your newly created forum can be accessed by visiting http://localhost:8080/forum?serverId=" + event.getGuild().getIdLong());
             eb.setColor(Color.RED);
             event.getHook().editOriginalEmbeds().setEmbeds(eb.build()).queue();
         });

@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface DiscordChannelRepository extends JpaRepository<DiscordChannel, Long> {
     List<DiscordChannel> findByCategoryId(long categoryId);
+    DiscordChannel findByChannelId(long channelId);
 }
