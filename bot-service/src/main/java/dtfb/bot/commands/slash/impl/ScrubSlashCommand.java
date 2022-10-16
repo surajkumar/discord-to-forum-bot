@@ -37,6 +37,9 @@ public class ScrubSlashCommand extends SlashCommand {
     @Autowired
     private DiscordUserRepository discordUserRepository;
 
+    @Autowired
+    private DiscordServerRepository discordServerRepository;
+
     public ScrubSlashCommand() {}
 
     @Override
@@ -46,6 +49,12 @@ public class ScrubSlashCommand extends SlashCommand {
         event.deferReply().queue();
 
         executor.execute(() -> {
+
+            DiscordServer server = new DiscordServer();
+            server.setServerId(event.getGuild().getIdLong());
+            server.setServerName(event.getGuild().getName());
+            discordServerRepository.save(server);
+
             /* Loop over all the categories within a server */
             List<Category> categories = event.getGuild().getCategories();
 
@@ -55,7 +64,6 @@ public class ScrubSlashCommand extends SlashCommand {
 
                 /* Save the category information */
                 DiscordCategory discordCategory = new DiscordCategory();
-                discordCategory.setServerId(event.getGuild().getIdLong());
                 discordCategory.setCategoryId(category.getIdLong());
                 discordCategory.setName(category.getName());
                 discordCategoryRepository.save(discordCategory);

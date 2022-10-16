@@ -22,38 +22,42 @@ import java.util.List;
 public class ForumController {
 
     @Autowired
-    private DiscordCategoryRepository discordCategoryRepository;
+    private DiscordCategoryRepository categoryRepository;
 
     @Autowired
-    private DiscordChannelRepository discordChannelRepository;
+    private DiscordChannelRepository channelRepository;
 
     @Autowired
-    private DiscordChannelThreadRepository discordChannelThreadRepository;
+    private DiscordChannelThreadRepository channelThreadRepository;
 
     @Autowired
-    private DiscordMessageRepository discordMessageRepository;
+    private DiscordMessageRepository messageRepository;
 
     @Autowired
-    private DiscordUserRepository discordUserRepository;
+    private DiscordUserRepository userRepository;
+
+    @Autowired
+    private DiscordServerRepository serverRepository;
 
     @GetMapping("/{serverId}")
     public ResponseEntity<ServerStructure> getServer(@PathVariable long serverId) {
         ServerStructure serverStructure = new ServerStructure();
+
         List<CategoryStructure> categoryStructure = new ArrayList<>();
-        discordCategoryRepository.findByServerId(serverId).forEach(c -> {
+        categoryRepository.findByServerId(serverId).forEach(c -> {
             CategoryStructure cats = new CategoryStructure();
             cats.setCategoryId(c.getCategoryId());
             cats.setCategoryName(c.getName());
 
             List<ChannelStructure> channelStructure = new ArrayList<>();
-            discordChannelRepository.findByCategoryId(c.getCategoryId()).forEach(channel -> {
+            channelRepository.findByCategoryId(c.getCategoryId()).forEach(channel -> {
                 ChannelStructure cs = new ChannelStructure();
                 cs.setChannelId(channel.getChannelId());
                 cs.setChannelName(channel.getName());
 
 
                 List<ThreadStructure> threadStructures = new ArrayList<>();
-                discordChannelThreadRepository.findByChannelId(channel.getChannelId()).forEach(t -> {
+                channelThreadRepository.findByChannelId(channel.getChannelId()).forEach(t -> {
                     ThreadStructure ts = new ThreadStructure();
                     ts.setThreadId(t.getThreadId());
                     ts.setThreadName(t.getName());
@@ -68,7 +72,7 @@ public class ForumController {
         });
 
         serverStructure.setServerId(serverId);
-        serverStructure.setServerName("Discord Server");
+        serverStructure.setServerName(serverRepository.findByServerId(serverId).getServerName());
         serverStructure.setCategories(categoryStructure);
 
         return new ResponseEntity<>(serverStructure, HttpStatus.OK);
@@ -76,30 +80,30 @@ public class ForumController {
 
     @GetMapping("/{serverId}/categories")
     public ResponseEntity<List<DiscordCategory>> getCategories(@PathVariable long serverId) {
-        return new ResponseEntity<>(discordCategoryRepository.findByServerId(serverId), HttpStatus.OK);
+        return new ResponseEntity<>(categoryRepository.findByServerId(serverId), HttpStatus.OK);
     }
 
     @GetMapping("/channels/{categoryId}")
     public ResponseEntity<List<DiscordChannel>> getChannels(@PathVariable long categoryId) {
-        return new ResponseEntity<>(discordChannelRepository.findByCategoryId(categoryId), HttpStatus.OK);
+        return new ResponseEntity<>(channelRepository.findByCategoryId(categoryId), HttpStatus.OK);
     }
 
     @GetMapping("/channels/{channelId}/messages")
     public ResponseEntity<List<DiscordMessage>> getChannelMessages(@PathVariable long channelId) {
-        return new ResponseEntity<>(discordMessageRepository.findByChannelId(channelId), HttpStatus.OK);
+        return new ResponseEntity<>(messageRepository.findByChannelId(channelId), HttpStatus.OK);
     }
 
     @GetMapping("/channels/{channelId}/threads")
     public ResponseEntity<List<DiscordChannelThread>> getChannelThreads(@PathVariable long channelId) {
-        return new ResponseEntity<>(discordChannelThreadRepository.findByChannelId(channelId), HttpStatus.OK);
+        return new ResponseEntity<>(channelThreadRepository.findByChannelId(channelId), HttpStatus.OK);
     }
     @GetMapping("/channels/{channelId}/threads/{threadId}/messages")
     public ResponseEntity<List<DiscordMessage>> getChannelThreadMessages(@PathVariable long threadId) {
-        return new ResponseEntity<>(discordMessageRepository.findByChannelId(threadId), HttpStatus.OK);
+        return new ResponseEntity<>(messageRepository.findByChannelId(threadId), HttpStatus.OK);
     }
 
     @GetMapping("/users/{userId}")
     public ResponseEntity<DiscordUser> getUser(@PathVariable long userId) {
-        return new ResponseEntity<>(discordUserRepository.findByUserId(userId), HttpStatus.OK);
+        return new ResponseEntity<>(userRepository.findByUserId(userId), HttpStatus.OK);
     }
 }

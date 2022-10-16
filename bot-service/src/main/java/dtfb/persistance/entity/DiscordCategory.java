@@ -14,8 +14,5 @@ public class DiscordCategory {
     private long categoryId;
 
     @Column
-    private long serverId;
-
-    @Column
     private String name;
 }
